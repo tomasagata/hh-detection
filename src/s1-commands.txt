@@ -1,0 +1,6 @@
+table_set_default dmac drop
+table_add dmac forward 00:10:0a:00:00:11 => 0
+table_add dmac forward 00:10:0a:00:00:22 => 1
+table_add dmac forward 00:10:0a:00:00:33 => 2
+table_add dmac forward 00:10:0a:00:00:44 => 3
+

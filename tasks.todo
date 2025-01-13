@@ -1,0 +1,6 @@
+[x] Configure the topology (including hosts ips)
+[ ] Check out traffic generation
+[x] Create a simple P4 Switch
+[x] Configure the control plane
+[ ] Port HashPipe
+[ ] Check out another algorithms
