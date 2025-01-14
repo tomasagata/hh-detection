@@ -1,4 +1,3 @@
-from mininet.net import Mininet
 from p4utils.mininetlib.network_API import NetworkAPI
 
 net = NetworkAPI()
@@ -9,7 +8,7 @@ net.setLogLevel('debug')
 
 # Network definition
 net.addP4Switch('s1', cli_input='s1-commands.txt')
-net.setP4Source('s1','l2_basic_forwarding.p4')
+net.setP4Source('s1','p4/l2_basic_forwarding.p4')
 # net.addSwitch('s1', failMode='standalone')
 
 net.addHost('h1')
@@ -59,11 +58,10 @@ net.setIntfIp('h4', 's1', '10.0.0.4/24')
 
 
 # Adding receiving tasks
-net.addTask('h3', 'python receive.py',
-            start=2)
-net.addTask('h4', 'python receive.py',
-            start=2)
-net.addTask('h1', 'python3 test.py')
+net.addTask('h3', 'python scripts/receive.py')
+net.addTask('h4', 'python scripts/receive.py')
+net.addTask('h1', 'python scripts/send.py h3 10', start=2)
+net.addTask('h2', 'python scripts/send.py h4 10', start=2)
 
 # Nodes general options
 net.enablePcapDumpAll()

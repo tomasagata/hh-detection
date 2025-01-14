@@ -126,7 +126,6 @@ control MyDeparser(packet_out packet, in headers hdr) {
 ***********************  S W I T C H  *******************************
 *************************************************************************/
 
-//switch architecture
 V1Switch(
 MyParser(),
 MyVerifyChecksum(),

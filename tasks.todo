@@ -1,6 +1,11 @@
 [x] Configure the topology (including hosts ips)
-[ ] Check out traffic generation
+[x] Check out traffic generation
 [x] Create a simple P4 Switch
 [x] Configure the control plane
-[ ] Port HashPipe
+[ ] Generating real traffic (CAIDA Dataset) https://www.caida.org/catalog/datasets/request_user_info_forms/passive_dataset_request/
+[ ] Create Makefile for project
+[ ] Port HashPipe from https://github.com/khooi8913/p4-hashpipe
+[ ] Port PRECISION from https://github.com/p4lang/p4-applications/tree/master/research_projects/PRECISION
+[ ] Analyze count-min sketch in hh-detection.p4 file
+[ ] 
 [ ] Check out another algorithms
