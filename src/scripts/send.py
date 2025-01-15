@@ -20,18 +20,17 @@ def get_if():
 
 # Most important function
 def send_random_traffic(dst_host, num_packets):
-    if dst_host != "h3" and dst_host != "h4":
+    if dst_host != "10.0.0.3" and dst_host != "10.0.0.4":
+        print(dst_host)
         print("host must be h3 or h4")
         sys.exit(1)
-    elif dst_host == "h3":
-        dst_ip = '10.0.0.3'
+    elif dst_host == "10.0.0.3":
         dst_mac = '00:10:0a:00:00:33'
-    elif dst_host == "h4":
-        dst_ip = '10.0.0.4'
+    elif dst_host == "10.0.0.4":
         dst_mac = '00:10:0a:00:00:44'
     
 
-    dst_addr = socket.gethostbyname(dst_ip)
+    dst_addr = socket.gethostbyname(dst_host)
     total_pkts = 0
     random_port = random.randint(1024,65000)
     iface = get_if()
@@ -43,7 +42,7 @@ def send_random_traffic(dst_host, num_packets):
     for i in range(num_packets):
         sendp(p, iface = iface)
         total_pkts += 1
-    with open("log/file.txt", "w") as f:
+    with open("log/file.txt", "w+") as f:
         f.write("Created using write mode.")
     print("Sent %s packets in total" % total_pkts)
 
