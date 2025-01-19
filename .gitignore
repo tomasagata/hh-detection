@@ -2,3 +2,4 @@ src/log
 src/pcap
 src/**/*.json
 src/**/*.p4i
+data/**
