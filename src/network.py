@@ -1,4 +1,9 @@
 from p4utils.mininetlib.network_API import NetworkAPI
+import sys
+
+if len(sys.argv) < 2:
+  print("Usage: sudo python network.py <pcap_file>")
+  exit(1)
 
 net = NetworkAPI()
 
@@ -9,6 +14,7 @@ net.setLogLevel('debug')
 # Network definition
 net.addP4Switch('s1', cli_input='s1-commands.txt')
 net.setP4Source('s1','p4/l2_basic_forwarding.p4')
+# net.addSwitch('s1', failMode='standalone')
 
 net.addHost('h1')
 net.addHost('h2')
@@ -42,8 +48,8 @@ net.setIntfMac('h2', 's1', '00:10:0a:00:00:22')
 # Start tests
 net.addTask('h1', 'tcpdump -i h1-eth0 -w pcap/h1-eth0.pcap')
 net.addTask('h2', 'tcpdump -i h2-eth0 -w pcap/h2-eth0.pcap')
-net.addTask('h2', 'python scripts/receive.py')
-net.addTask('h1', 'python scripts/send.py', start=1)
+net.addTask('h2', f"python scripts/receive.py")
+net.addTask('h1', f"python scripts/send.py {sys.argv[1]}", start=1)
 
 
 # Nodes general options

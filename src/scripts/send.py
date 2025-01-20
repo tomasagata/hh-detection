@@ -15,27 +15,29 @@ def get_if():
         exit(1)
     return iface
 
-def read_capture():
-    return rdpcap("../data/dataset.pcap")
+def read_capture(capture_file):
+    pkts =  rdpcap(capture_file)
+    for p in pkts:
+        logger.info(p)
+    return pkts
 
 def send_traffic(packets):
     iface = get_if()
-    count = 0
-
-    for pkt in packets:
-        pkt = Ether() / pkt
-        sendp(pkt, iface=iface)
-        logger.info("Packet sent: \n%s", pkt)
-        count+=1
-    logger.info("Sent %s packets in total", count)
+    for p in packets:
+        sendp(p, iface=iface)
+    # logger.info("Sent %s packets in total", len(sent_pkts))
 
 def error_handler(type, value, tb):
     logger.exception("Uncaught exception: {0}".format(str(value)))
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Usage: python send.py <pcap_file>")
+        exit(1)
+
     logging.basicConfig(filename='log/send.log', level=logging.INFO)
     sys.excepthook = error_handler
 
     logger.info("Starting send.py")
-    pkts = read_capture()
+    pkts = read_capture(sys.argv[1])
     send_traffic(pkts)

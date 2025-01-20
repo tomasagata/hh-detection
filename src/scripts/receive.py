@@ -24,10 +24,10 @@ iface = get_if()
 
 def handle_pkt(pkt):
     logger.debug("Received packet!")
+    logger.debug("pkt: %s", pkt)
     if not is_valid(pkt):
         return
 
-    logger.debug("pkt: %s", pkt)
 
     if TCP in pkt:
         handle_tcp_traffic(pkt)
