@@ -2,10 +2,10 @@
 [x] Check out traffic generation
 [x] Create a simple P4 Switch
 [x] Configure the control plane
-[ ] Generating real traffic (CAIDA Dataset) https://www.caida.org/catalog/datasets/request_user_info_forms/passive_dataset_request/
-[ ] Create Makefile for project
+[x] Generating real traffic (CAIDA Dataset) https://www.caida.org/catalog/datasets/request_user_info_forms/passive_dataset_request/
+[x] Create Makefile for project
+[ ] Implement measurements for Precision, Recall, f1score, False Positive rate, False Negative rate
 [ ] Port HashPipe from https://github.com/khooi8913/p4-hashpipe
 [ ] Port PRECISION from https://github.com/p4lang/p4-applications/tree/master/research_projects/PRECISION
 [ ] Analyze count-min sketch in hh-detection.p4 file
-[ ] 
 [ ] Check out another algorithms
