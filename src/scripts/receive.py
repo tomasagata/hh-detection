@@ -1,5 +1,5 @@
 from scapy.all import sniff, get_if_list, get_if_hwaddr
-from scapy.all import Ether, IP, TCP, UDP
+from scapy.all import Ether, IP, IPv6, TCP, UDP
 import logging
 import atexit
 import sys
@@ -29,18 +29,18 @@ def handle_pkt(pkt):
         return
 
 
-    if TCP in pkt:
-        handle_tcp_traffic(pkt)
-    elif UDP in pkt:
-        handle_udp_traffic(pkt)
-    elif IP in pkt:
-        handle_ip_traffic(pkt)
-    elif Ether in pkt:
-        handle_raw_traffic(pkt)
+    if TCP in pkt and IPv6 in pkt:
+        handle_tcp_6_traffic(pkt)
+    elif UDP in pkt and IPv6 in pkt:
+        handle_udp_6_traffic(pkt)
+    elif TCP in pkt and IP in pkt:
+        handle_tcp_4_traffic(pkt)
+    elif UDP in pkt and IP in pkt:
+        handle_udp_4_traffic(pkt)
 
 #    print("Received from %s total: %s" % (id_tup, totals[id_tup]))
  
-def handle_tcp_traffic(packet):
+def handle_tcp_4_traffic(packet):
     logger.debug("Packet has TCP header")
     eth_t = packet[Ether].type
     src_ip = packet[IP].src
@@ -51,7 +51,7 @@ def handle_tcp_traffic(packet):
     id_tup = (eth_t, src_ip, dst_ip, proto, sport, dport)
     add_tuple(id_tup)
 
-def handle_udp_traffic(packet):
+def handle_udp_4_traffic(packet):
     logger.debug("Packet has UDP header")
     eth_t = packet[Ether].type
     src_ip = packet[IP].src
@@ -62,20 +62,42 @@ def handle_udp_traffic(packet):
     id_tup = (eth_t, src_ip, dst_ip, proto, sport, dport)
     add_tuple(id_tup)
 
-def handle_ip_traffic(packet):
-    logger.debug("Packet has IP header")
+def handle_tcp_6_traffic(packet):
+    logger.debug("Packet has TCP header")
     eth_t = packet[Ether].type
-    src_ip = packet[IP].src
-    dst_ip = packet[IP].dst
-    proto = packet[IP].proto
-    id_tup = (eth_t, src_ip, dst_ip, proto, None, None)
+    src_ip = packet[IPv6].src
+    dst_ip = packet[IPv6].dst
+    proto = packet[IPv6].nh
+    sport = packet[TCP].sport
+    dport = packet[TCP].dport
+    id_tup = (eth_t, src_ip, dst_ip, proto, sport, dport)
     add_tuple(id_tup)
 
-def handle_raw_traffic(packet):
-    logger.debug("Packet has Raw header")
+def handle_udp_6_traffic(packet):
+    logger.debug("Packet has UDP header")
     eth_t = packet[Ether].type
-    id_tup = (eth_t, None, None, None, None, None)
+    src_ip = packet[IPv6].src
+    dst_ip = packet[IPv6].dst
+    proto = packet[IPv6].nh
+    sport = packet[UDP].sport
+    dport = packet[UDP].dport
+    id_tup = (eth_t, src_ip, dst_ip, proto, sport, dport)
     add_tuple(id_tup)
+
+# def handle_ip_traffic(packet):
+#     logger.debug("Packet has IP header")
+#     eth_t = packet[Ether].type
+#     src_ip = packet[IP].src
+#     dst_ip = packet[IP].dst
+#     proto = packet[IP].proto
+#     id_tup = (eth_t, src_ip, dst_ip, proto, None, None)
+#     add_tuple(id_tup)
+
+# def handle_raw_traffic(packet):
+#     logger.debug("Packet has Raw header")
+#     eth_t = packet[Ether].type
+#     id_tup = (eth_t, None, None, None, None, None)
+#     add_tuple(id_tup)
 
 def add_tuple(id_tup):
     if id_tup not in totals:

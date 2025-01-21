@@ -9,3 +9,4 @@
 [ ] Port PRECISION from https://github.com/p4lang/p4-applications/tree/master/research_projects/PRECISION
 [ ] Analyze count-min sketch in hh-detection.p4 file
 [ ] Check out another algorithms
+[ ] Missing IPv6 in algorithm!!!

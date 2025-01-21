@@ -23,8 +23,8 @@ hh_list = []
 class Elephant4(Packet):
     name = "Elephant4"
     fields_desc = [
-        BitField("src", 0, 32),
-        BitField("dst", 0, 32),
+        IPField("src", 0),
+        IPField("dst", 0),
         BitField("proto", 0, 8),
         BitField("sport", 0, 16),
         BitField("dport", 0, 16),
@@ -33,8 +33,8 @@ class Elephant4(Packet):
 class Elephant6(Packet):
     name = "Elephant6"
     fields_desc = [
-        BitField("src", 0, 128),
-        BitField("dst", 0, 128),
+        IP6Field("src", 0),
+        IP6Field("dst", 0),
         BitField("proto", 0, 8),
         BitField("sport", 0, 16),
         BitField("dport", 0, 16),
