@@ -4,9 +4,12 @@
 [x] Configure the control plane
 [x] Generating real traffic (CAIDA Dataset) https://www.caida.org/catalog/datasets/request_user_info_forms/passive_dataset_request/
 [x] Create Makefile for project
-[ ] Implement measurements for Precision, Recall, f1score, False Positive rate, False Negative rate
+[x] Implement measurements for Precision, Recall, f1score, False Positive rate, False Negative rate
 [ ] Port HashPipe from https://github.com/khooi8913/p4-hashpipe
 [ ] Port PRECISION from https://github.com/p4lang/p4-applications/tree/master/research_projects/PRECISION
-[ ] Analyze count-min sketch in hh-detection.p4 file
 [ ] Check out another algorithms
-[ ] Missing IPv6 in algorithm!!!
+[x] Analyze count-min sketch in hh-detection.p4 file
+[x] Enable IPv6 traffic in the model
+[ ] Declarative traffic generation (https://trex-tgn.cisco.com/)
+[ ] Bandwidth, Troughput and Latency analysis
+[ ] Redesign the simulation to be less p4-code invasive
