@@ -1,8 +1,11 @@
-from scapy.all import sniff, get_if_list, bind_layers
+from scapy.all import sniff, get_if_list, bind_layers, AsyncSniffer
 from scapy.all import Packet
 from scapy.all import Ether
 from scapy.fields import *
 import logging
+import atexit
+import json
+import sys
 
 def get_if():
     ifs = get_if_list()
@@ -18,7 +21,7 @@ def get_if():
 
 logger = logging.getLogger(__name__)
 iface = get_if()
-hh_list = []
+detected_hh_list = []
 
 class Elephant4(Packet):
     name = "Elephant4"
@@ -40,8 +43,6 @@ class Elephant6(Packet):
         BitField("dport", 0, 16),
     ]
 
-
-
 def handle_pkt(pkt: Packet):
     if Elephant4 in pkt:
         src_ip = pkt[Elephant4].src
@@ -60,17 +61,61 @@ def handle_pkt(pkt: Packet):
     
     packet_info = (src_ip, dst_ip, ip_proto, src_port, dst_port)
 
-    if packet_info not in hh_list:
-        hh_list.append(packet_info)
-        logger.info("New heavy hitter flow: %s", packet_info)
-    
-    pkt.show2()
+    if packet_info not in detected_hh_list:
+        detected_hh_list.append(packet_info)
+        logger.info(f"New heavy hitter flow: {packet_info}")
 
+def read_ground_truth(path: str):
+    with open(path, "r") as f:
+        real_hh_list = json.load(f)
+    return [tuple(i) for i in real_hh_list]
+
+def report_accuracy(real_hh_list):
+    logger.info("Starting accuracy report...")
+    fp = 0.0; fn = 0.0; tp = 0.0
+    
+    for detected_hh in detected_hh_list:
+        if detected_hh in real_hh_list:
+            tp += 1
+        if detected_hh not in real_hh_list:
+            fp += 1
+
+    for real_hh in real_hh_list:
+        if real_hh not in detected_hh_list:
+            fn += 1
+
+    try:
+        precision = tp/(tp+fp)
+        recall = tp/(tp+fn)
+        f1 = 2 * (precision * recall) / (precision + recall)
+        logger.info("Accuracy details: \n" +
+            f"tp = {tp}, \n" +
+            f"fp = {fp}, \n" +
+            f"fn = {fn}, \n" +
+            f"precision = {precision}, \n" +
+            f"recall = {recall}, \n" +
+            f"f1 = {f1}")
+    except:
+        logger.info("Accuracy measurements incomplete (zero true positives found): \n" +
+            f"tp = {tp}, \n" +
+            f"fp = {fp}, \n" +
+            f"fn = {fn}, \n" +
+            "precision = unknown, \n" +
+            "recall = unknown, \n" +
+            "f1 = unknown")
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print(f"Usage: {sys.argv[0]} <ground_truth_path>")
+        exit(1)
+
     logging.basicConfig(filename="log/monitor.log", level=logging.INFO)
-    logger.info("Started monitor on interface %s", iface)
+    logger.info(f"Started monitor on interface {iface}")
 
     bind_layers(Ether, Elephant4, type=0x8822)
     bind_layers(Ether, Elephant6, type=0x8823)
-    sniff(iface=iface, prn=handle_pkt)
+    t = AsyncSniffer(iface=iface, prn=handle_pkt)
+    t.start()
+    real_hh_list = read_ground_truth(sys.argv[1])
+    atexit.register(lambda: report_accuracy(real_hh_list))
+    t.join()
