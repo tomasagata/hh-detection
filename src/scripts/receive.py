@@ -125,9 +125,12 @@ def exit_handler():
         sorted_totals[key] = totals[key]
 
     summary_str = "Flows summaries: \n"
+    sum = 0
     for tuple, hits in sorted_totals.items():
         summary_str += '    {} {}\n'.format(tuple, hits)
+        sum += hits
     logger.info(summary_str)
+    logger.info(f"Counted {sum} packets received.")
 
 def error_handler(type, value, tb):
     logger.exception("Uncaught exception: {0}".format(str(value)))

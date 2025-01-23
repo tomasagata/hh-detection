@@ -11,5 +11,6 @@
 [x] Analyze count-min sketch in hh-detection.p4 file
 [x] Enable IPv6 traffic in the model
 [ ] Declarative traffic generation (https://trex-tgn.cisco.com/)
-[ ] Bandwidth, Troughput and Latency analysis
+[ ] Bandwidth, Troughput and Latency/delay analysis
+[ ] Add k-flow ground truth analysis
 [ ] Redesign the simulation to be less p4-code invasive

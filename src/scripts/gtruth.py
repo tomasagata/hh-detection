@@ -1,39 +1,46 @@
 # Precompute ground truth and then start testing
-import sys
 import json
+import argparse
 from scapy.all import rdpcap
 from scapy.all import IP, IPv6, TCP, UDP
 
-def compute_gtruth(pcap_file, threshold):
-    pkt_dict = {}
-    hh_list = []
+def separate_flows(pcap_file):
+    flow_dict = {}
     packets = rdpcap(pcap_file)
 
     for pkt in packets:
-        id_tuple = None
+        flow_id = None
 
         if TCP in pkt and IPv6 in pkt:
-            id_tuple = handle_tcp_6_traffic(pkt)
+            flow_id = handle_tcp_6_traffic(pkt)
         elif UDP in pkt and IPv6 in pkt:
-            id_tuple = handle_udp_6_traffic(pkt)
+            flow_id = handle_udp_6_traffic(pkt)
         elif TCP in pkt and IP in pkt:
-            id_tuple = handle_tcp_4_traffic(pkt)
+            flow_id = handle_tcp_4_traffic(pkt)
         elif UDP in pkt and IP in pkt:
-            id_tuple = handle_udp_4_traffic(pkt)
+            flow_id = handle_udp_4_traffic(pkt)
         
-        if id_tuple is None:
+        if flow_id is None:
             continue
 
-        if id_tuple not in pkt_dict:
-            pkt_dict[id_tuple] = 1
+        if flow_id not in flow_dict:
+            flow_dict[flow_id] = 1
         else:
-            pkt_dict[id_tuple] += 1
-        
-        if pkt_dict[id_tuple] > threshold and id_tuple not in hh_list:
-            hh_list.append(id_tuple)
+            flow_dict[flow_id] += 1
 
+    return flow_dict
+
+def compute_threshold(flow_dict, pkt_threshold):
+    hh_list = []
+    for flow_id, pkt_count in flow_dict.items():
+        if pkt_count > pkt_threshold and flow_id not in hh_list:
+            hh_list.append(flow_id)
     return hh_list
 
+def compute_topk(flow_dict, top_k):
+    sorted_items = sorted(flow_dict.items(), key=lambda item: item[1], reverse=True)
+    sorted_flow_ids = [flow_id for flow_id, _ in sorted_items]
+    return sorted_flow_ids[:top_k]
 
 def handle_tcp_4_traffic(packet):
     src_ip = packet[IP].src
@@ -70,14 +77,21 @@ def handle_udp_6_traffic(packet):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: start.py <dataset.pcap> <threshold>")
-        exit(1)
-
-    dataset_path = sys.argv[1]
-    threshold = int(sys.argv[2])
+    parser = argparse.ArgumentParser(
+        description="Generate ground truth file from packet capture")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-t", "--threshold", type=int, help="Specify the packet threshold to start considering a flow as a heavy hitter.")
+    group.add_argument("-k", "--top-k", type=int, help="Specify the amount of flows to consider as heavy hitters.")
+    parser.add_argument("pcap_file", type=str, help="Specify the packet capture file to read from.") 
+    args = parser.parse_args()
+    
     gtruth_output_path = "run/gtruth.json"
-    gtruth = compute_gtruth(dataset_path, threshold)
-    with open(gtruth_output_path, 'w') as f:
-        json.dump(gtruth, f)
+    flows = separate_flows(args.pcap_file)
+
+    if args.threshold is not None:
+        hh_list = compute_threshold(flows, args.threshold)
+    elif args.top_k is not None:
+        hh_list = compute_topk(flows, args.top_k)
+    with open(gtruth_output_path, 'w+') as f:
+        json.dump(hh_list, f)
 

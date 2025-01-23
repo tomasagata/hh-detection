@@ -14,7 +14,7 @@ net.setLogLevel('debug')
 # Network definition
 net.addP4Switch('s1', cli_input='src/s1-commands.txt')
 # net.setP4Source('s1','p4/l2_basic_forwarding.p4')
-net.setP4Source('s1','src/p4/count_min.p4')
+net.setP4Source('s1','src/p4/modified_bloom_filter.p4')
 # net.addSwitch('s1', failMode='standalone')
 
 net.addHost('h1')

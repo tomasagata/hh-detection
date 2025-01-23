@@ -1,4 +1,4 @@
-from scapy.all import sniff, get_if_list, bind_layers, AsyncSniffer
+from scapy.all import get_if_list, bind_layers, AsyncSniffer
 from scapy.all import Packet
 from scapy.all import Ether
 from scapy.fields import *
@@ -26,31 +26,41 @@ detected_hh_list = []
 class Elephant4(Packet):
     name = "Elephant4"
     fields_desc = [
+        BitField("fadd", 0, size=1),
+        BitField("fevict", 0, size=1),
+        BitField("reserved", 0, size=6),
         IPField("src", 0),
         IPField("dst", 0),
-        BitField("proto", 0, 8),
-        BitField("sport", 0, 16),
-        BitField("dport", 0, 16),
+        BitField("proto", 0, size=8),
+        BitField("sport", 0, size=16),
+        BitField("dport", 0, size=16),
     ]
 
 class Elephant6(Packet):
     name = "Elephant6"
     fields_desc = [
+        BitField("fadd", 0, size=1),
+        BitField("fevict", 0, size=1),
+        BitField("reserved", 0, size=6),
         IP6Field("src", 0),
         IP6Field("dst", 0),
-        BitField("proto", 0, 8),
-        BitField("sport", 0, 16),
-        BitField("dport", 0, 16),
+        BitField("proto", 0, size=8),
+        BitField("sport", 0, size=16),
+        BitField("dport", 0, size=16),
     ]
 
 def handle_pkt(pkt: Packet):
     if Elephant4 in pkt:
+        flow_addition = pkt[Elephant4].fadd
+        flow_eviction = pkt[Elephant4].fevict
         src_ip = pkt[Elephant4].src
         dst_ip = pkt[Elephant4].dst
         ip_proto = pkt[Elephant4].proto
         src_port = pkt[Elephant4].sport
         dst_port = pkt[Elephant4].dport
     elif Elephant6 in pkt:
+        flow_addition = pkt[Elephant6].fadd
+        flow_eviction = pkt[Elephant6].fevict
         src_ip = pkt[Elephant6].src
         dst_ip = pkt[Elephant6].dst
         ip_proto = pkt[Elephant6].proto
@@ -61,9 +71,16 @@ def handle_pkt(pkt: Packet):
     
     packet_info = (src_ip, dst_ip, ip_proto, src_port, dst_port)
 
-    if packet_info not in detected_hh_list:
-        detected_hh_list.append(packet_info)
-        logger.info(f"New heavy hitter flow: {packet_info}")
+    if flow_addition == 1:
+        if packet_info not in detected_hh_list:
+            detected_hh_list.append(packet_info)
+            logger.info(f"New heavy hitter flow: {packet_info}")
+    elif flow_eviction == 1:
+        try:
+            detected_hh_list.remove(packet_info)
+            logger.info(f"Evicted heavy hitter flow: {packet_info}")
+        except ValueError:
+            return
 
 def read_ground_truth(path: str):
     with open(path, "r") as f:
@@ -83,6 +100,7 @@ def report_accuracy(real_hh_list):
     for real_hh in real_hh_list:
         if real_hh not in detected_hh_list:
             fn += 1
+            logger.info(f"Missing flow: {real_hh}")
 
     try:
         precision = tp/(tp+fp)

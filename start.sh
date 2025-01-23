@@ -5,7 +5,7 @@ Usage: $0 [-t pkts | -k flows] -p file
 
 Options:
   -p, --pcap <file>            Specify the packet capture file for the test.
-  -t, --threshold <packets>    Specify the packet threshold to start considering as a heavy hitter.
+  -t, --threshold <packets>    Specify the packet threshold to start considering a flow as a heavy hitter.
   -k, --top-k <flows>          Specify the amount of flows to consider as heavy hitters.
   -h, --help                   Print this usage and exit.
 
@@ -63,9 +63,23 @@ if [ -n "$TOP_K" ] && [ -n "$THRESHOLD" ]; then
   exit 1
 fi
 
-echo "Generating ground truth..."
-python3 src/scripts/gtruth.py $PCAP_FILE $THRESHOLD
-echo "Done."
+if [ -n "$TOP_K" ]; then
+  echo "Generating ground truth..."
+  python3 src/scripts/gtruth.py $PCAP_FILE --top-k $TOP_K
+  echo "Done."
+fi
+
+if [ -n "$THRESHOLD" ]; then
+  echo "Generating ground truth..."
+  python3 src/scripts/gtruth.py $PCAP_FILE --threshold $THRESHOLD
+  ret=$?
+  echo "Done."
+fi
+
+if [ $ret -ne 0 ]; then
+  echo "Failed generating ground truth. Exiting..."
+  exit 1
+fi
 
 echo "Starting network..."
 sudo python src/network.py $PCAP_FILE
