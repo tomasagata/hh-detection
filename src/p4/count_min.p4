@@ -12,32 +12,32 @@
 #define SKETCH_REGISTER(num) register<bit<SKETCH_CELL_BIT_WIDTH>>(SKETCH_BUCKET_LENGTH) sketch##num
 
 #define SKETCH_COUNT_4_TCP(num, algorithm) \
-    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)0, \
-        {hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.ipv4.protocol, (bit<16>)num}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
+    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<32>)0, \
+        {hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.ipv4.protocol}, (bit<32>)SKETCH_BUCKET_LENGTH); \
     sketch##num.read(meta.value_sketch##num, meta.index_sketch##num); \
     meta.value_sketch##num = meta.value_sketch##num +1; \
     log_msg("register = {}", {meta.value_sketch##num}); \
     sketch##num.write(meta.index_sketch##num, meta.value_sketch##num)
 
 #define SKETCH_COUNT_4_UDP(num, algorithm) \
-    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)0, \
-        {hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.udp.srcPort, hdr.udp.dstPort, hdr.ipv4.protocol, (bit<16>)num}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
+    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<32>)0, \
+        {hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.udp.srcPort, hdr.udp.dstPort, hdr.ipv4.protocol}, (bit<32>)SKETCH_BUCKET_LENGTH); \
     sketch##num.read(meta.value_sketch##num, meta.index_sketch##num); \
     meta.value_sketch##num = meta.value_sketch##num +1; \
     log_msg("register = {}", {meta.value_sketch##num}); \
     sketch##num.write(meta.index_sketch##num, meta.value_sketch##num)
 
 #define SKETCH_COUNT_6_TCP(num, algorithm) \
-    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)0, \
-        {hdr.ipv6.srcAddr, hdr.ipv6.dstAddr, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.ipv6.nextHeader, (bit<16>)num}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
+    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<32>)0, \
+        {hdr.ipv6.srcAddr, hdr.ipv6.dstAddr, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.ipv6.nextHeader}, (bit<32>)SKETCH_BUCKET_LENGTH); \
     sketch##num.read(meta.value_sketch##num, meta.index_sketch##num); \
     meta.value_sketch##num = meta.value_sketch##num +1; \
     log_msg("register = {}", {meta.value_sketch##num}); \
     sketch##num.write(meta.index_sketch##num, meta.value_sketch##num)
 
 #define SKETCH_COUNT_6_UDP(num, algorithm) \
-    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)0, \
-        {hdr.ipv6.srcAddr, hdr.ipv6.dstAddr, hdr.udp.srcPort, hdr.udp.dstPort, hdr.ipv6.nextHeader, (bit<16>)num}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
+    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<32>)0, \
+        {hdr.ipv6.srcAddr, hdr.ipv6.dstAddr, hdr.udp.srcPort, hdr.udp.dstPort, hdr.ipv6.nextHeader}, (bit<32>)SKETCH_BUCKET_LENGTH); \
     sketch##num.read(meta.value_sketch##num, meta.index_sketch##num); \
     meta.value_sketch##num = meta.value_sketch##num +1; \
     log_msg("register = {}", {meta.value_sketch##num}); \
@@ -248,33 +248,33 @@ control MyIngress(inout headers hdr,
     }
 
     action sketch_count_4_tcp(){
-        SKETCH_COUNT_4_TCP(0, crc32_custom);
-        SKETCH_COUNT_4_TCP(1, crc32_custom);
-        SKETCH_COUNT_4_TCP(2, crc32_custom);
+        SKETCH_COUNT_4_TCP(0, crc32);
+        SKETCH_COUNT_4_TCP(1, crc16);
+        SKETCH_COUNT_4_TCP(2, xor16);
         //SKETCH_COUNT_4_TCP(3, crc32_custom);
         //SKETCH_COUNT_4_TCP(4, crc32_custom);
     }
 
     action sketch_count_4_udp(){
-        SKETCH_COUNT_4_UDP(0, crc32_custom);
-        SKETCH_COUNT_4_UDP(1, crc32_custom);
-        SKETCH_COUNT_4_UDP(2, crc32_custom);
+        SKETCH_COUNT_4_UDP(0, crc32);
+        SKETCH_COUNT_4_UDP(1, crc16);
+        SKETCH_COUNT_4_UDP(2, xor16);
         //SKETCH_COUNT_4_UDP(3, crc32_custom);
         //SKETCH_COUNT_4_UDP(4, crc32_custom);
     }
 
     action sketch_count_6_tcp(){
-        SKETCH_COUNT_6_TCP(0, crc32_custom);
-        SKETCH_COUNT_6_TCP(1, crc32_custom);
-        SKETCH_COUNT_6_TCP(2, crc32_custom);
+        SKETCH_COUNT_6_TCP(0, crc32);
+        SKETCH_COUNT_6_TCP(1, crc16);
+        SKETCH_COUNT_6_TCP(2, xor16);
         //SKETCH_COUNT_6_TCP(3, crc32_custom);
         //SKETCH_COUNT_6_TCP(4, crc32_custom);
     }
 
     action sketch_count_6_udp(){
-        SKETCH_COUNT_6_UDP(0, crc32_custom);
-        SKETCH_COUNT_6_UDP(1, crc32_custom);
-        SKETCH_COUNT_6_UDP(2, crc32_custom);
+        SKETCH_COUNT_6_UDP(0, crc32);
+        SKETCH_COUNT_6_UDP(1, crc16);
+        SKETCH_COUNT_6_UDP(2, xor16);
         //SKETCH_COUNT_6_UDP(3, crc32_custom);
         //SKETCH_COUNT_6_UDP(4, crc32_custom);
     }
