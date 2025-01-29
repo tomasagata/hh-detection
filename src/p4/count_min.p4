@@ -3,7 +3,7 @@
 #include <v1model.p4>
 
 /* CONSTANTS */
-#define SKETCH_BUCKET_LENGTH 128
+#define SKETCH_BUCKET_LENGTH 64
 #define SKETCH_CELL_BIT_WIDTH 32
 // 28 * 64 = 1792 bits
 #define HH_THRESHOLD 10
@@ -12,32 +12,32 @@
 #define SKETCH_REGISTER(num) register<bit<SKETCH_CELL_BIT_WIDTH>>(SKETCH_BUCKET_LENGTH) sketch##num
 
 #define SKETCH_COUNT_4_TCP(num, algorithm) \
-    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)num, \
-        {hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.ipv4.protocol}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
+    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)0, \
+        {hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.ipv4.protocol, (bit<16>)num}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
     sketch##num.read(meta.value_sketch##num, meta.index_sketch##num); \
     meta.value_sketch##num = meta.value_sketch##num +1; \
     log_msg("register = {}", {meta.value_sketch##num}); \
     sketch##num.write(meta.index_sketch##num, meta.value_sketch##num)
 
 #define SKETCH_COUNT_4_UDP(num, algorithm) \
-    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)num, \
-        {hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.udp.srcPort, hdr.udp.dstPort, hdr.ipv4.protocol}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
+    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)0, \
+        {hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.udp.srcPort, hdr.udp.dstPort, hdr.ipv4.protocol, (bit<16>)num}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
     sketch##num.read(meta.value_sketch##num, meta.index_sketch##num); \
     meta.value_sketch##num = meta.value_sketch##num +1; \
     log_msg("register = {}", {meta.value_sketch##num}); \
     sketch##num.write(meta.index_sketch##num, meta.value_sketch##num)
 
 #define SKETCH_COUNT_6_TCP(num, algorithm) \
-    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)num, \
-        {hdr.ipv6.srcAddr, hdr.ipv6.dstAddr, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.ipv6.nextHeader}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
+    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)0, \
+        {hdr.ipv6.srcAddr, hdr.ipv6.dstAddr, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.ipv6.nextHeader, (bit<16>)num}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
     sketch##num.read(meta.value_sketch##num, meta.index_sketch##num); \
     meta.value_sketch##num = meta.value_sketch##num +1; \
     log_msg("register = {}", {meta.value_sketch##num}); \
     sketch##num.write(meta.index_sketch##num, meta.value_sketch##num)
 
 #define SKETCH_COUNT_6_UDP(num, algorithm) \
-    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)num, \
-        {hdr.ipv6.srcAddr, hdr.ipv6.dstAddr, hdr.udp.srcPort, hdr.udp.dstPort, hdr.ipv6.nextHeader}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
+    hash(meta.index_sketch##num, HashAlgorithm.algorithm, (bit<16>)0, \
+        {hdr.ipv6.srcAddr, hdr.ipv6.dstAddr, hdr.udp.srcPort, hdr.udp.dstPort, hdr.ipv6.nextHeader, (bit<16>)num}, (bit<32>)SKETCH_BUCKET_LENGTH-1); \
     sketch##num.read(meta.value_sketch##num, meta.index_sketch##num); \
     meta.value_sketch##num = meta.value_sketch##num +1; \
     log_msg("register = {}", {meta.value_sketch##num}); \
