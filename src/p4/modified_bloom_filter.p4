@@ -10,6 +10,23 @@ const bit<8>  TYPE_TCP  = 6;
 #define BLOOM_FILTER_BIT_WIDTH 32
 #define PACKET_THRESHOLD 10
 
+#define HASH_IPV4_TCP(num, algorithm) \
+    hash(meta.output_hash_##num, HashAlgorithm.algorithm, (bit<16>)0, \
+        {hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.ipv4.protocol, (bit<16>)num}, (bit<32>)BLOOM_FILTER_ENTRIES-1); \
+
+#define HASH_IPV4_UDP(num, algorithm) \
+    hash(meta.output_hash_##num, HashAlgorithm.algorithm, (bit<16>)0, \
+        {hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.udp.srcPort, hdr.udp.dstPort, hdr.ipv4.protocol, (bit<16>)num}, (bit<32>)BLOOM_FILTER_ENTRIES-1); \
+
+#define HASH_IPV6_TCP(num, algorithm) \
+    hash(meta.output_hash_##num, HashAlgorithm.algorithm, (bit<16>)0, \
+        {hdr.ipv6.srcAddr, hdr.ipv6.dstAddr, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.ipv6.nextHeader, (bit<16>)num}, (bit<32>)BLOOM_FILTER_ENTRIES-1); \
+
+#define HASH_IPV6_UDP(num, algorithm) \
+    hash(meta.output_hash_##num, HashAlgorithm.algorithm, (bit<16>)0, \
+        {hdr.ipv6.srcAddr, hdr.ipv6.dstAddr, hdr.udp.srcPort, hdr.udp.dstPort, hdr.ipv6.nextHeader, (bit<16>)num}, (bit<32>)BLOOM_FILTER_ENTRIES-1); \
+
+
 /*changes*/
 #define isClone() standard_metadata.instance_type == 1
 #define CLONE_SESS_ID 500
@@ -119,9 +136,9 @@ header udp_t {
 /*done*/
 
 struct metadata {
-    bit<32> output_hash_one;
-    bit<32> output_hash_two;
-    bit<32> output_hash_three;
+    bit<32> output_hash_1;
+    bit<32> output_hash_2;
+    bit<32> output_hash_3;
     bit<32> counter_one;
     bit<32> counter_two;
     bit<32> counter_three;
@@ -222,122 +239,34 @@ control MyIngress(inout headers hdr,
     }
 
     action hash_4_tcp(){
-       //Get register position
-       hash(meta.output_hash_one, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv4.srcAddr,
-                                                          hdr.ipv4.dstAddr,
-                                                          hdr.tcp.srcPort,
-                                                          hdr.tcp.dstPort,
-                                                          hdr.ipv4.protocol, 
-                                                          (bit<16>)0},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-
-       hash(meta.output_hash_two, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv4.srcAddr,
-                                                          hdr.ipv4.dstAddr,
-                                                          hdr.tcp.srcPort,
-                                                          hdr.tcp.dstPort,
-                                                          hdr.ipv4.protocol,
-                                                          (bit<16>)1},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-
-       hash(meta.output_hash_three, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv4.srcAddr,
-                                                          hdr.ipv4.dstAddr,
-                                                          hdr.tcp.srcPort,
-                                                          hdr.tcp.dstPort,
-                                                          hdr.ipv4.protocol,
-                                                          (bit<16>)2},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-
+        HASH_IPV4_TCP(1, crc32);
+        HASH_IPV4_TCP(2, crc32);
+        HASH_IPV4_TCP(3, crc32);
     }
 
     action hash_4_udp(){
-       //Get register position
-       hash(meta.output_hash_one, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv4.srcAddr,
-                                                          hdr.ipv4.dstAddr,
-                                                          hdr.udp.srcPort,
-                                                          hdr.udp.dstPort,
-                                                          hdr.ipv4.protocol,
-                                                          (bit<16>)0},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-
-       hash(meta.output_hash_two, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv4.srcAddr,
-                                                          hdr.ipv4.dstAddr,
-                                                          hdr.udp.srcPort,
-                                                          hdr.udp.dstPort,
-                                                          hdr.ipv4.protocol,
-                                                          (bit<16>)1},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-
-       hash(meta.output_hash_three, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv4.srcAddr,
-                                                          hdr.ipv4.dstAddr,
-                                                          hdr.udp.srcPort,
-                                                          hdr.udp.dstPort,
-                                                          hdr.ipv4.protocol,
-                                                          (bit<16>)2},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-
+        HASH_IPV4_UDP(1, crc32);
+        HASH_IPV4_UDP(2, crc32);
+        HASH_IPV4_UDP(3, crc32);
     }
 
     action hash_6_tcp(){
-       //Get register position
-       hash(meta.output_hash_one, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv6.srcAddr,
-                                                          hdr.ipv6.dstAddr,
-                                                          hdr.tcp.srcPort,
-                                                          hdr.tcp.dstPort,
-                                                          hdr.ipv6.nextHeader,
-                                                          (bit<16>)0},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-
-       hash(meta.output_hash_two, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv6.srcAddr,
-                                                          hdr.ipv6.dstAddr,
-                                                          hdr.tcp.srcPort,
-                                                          hdr.tcp.dstPort,
-                                                          hdr.ipv6.nextHeader,
-                                                          (bit<16>)1},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-
-       hash(meta.output_hash_three, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv6.srcAddr,
-                                                          hdr.ipv6.dstAddr,
-                                                          hdr.tcp.srcPort,
-                                                          hdr.tcp.dstPort,
-                                                          hdr.ipv6.nextHeader,
-                                                          (bit<16>)2},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-        
+       HASH_IPV6_TCP(1, crc32);
+       HASH_IPV6_TCP(2, crc32);
+       HASH_IPV6_TCP(3, crc32);        
     }
 
     action hash_6_udp(){
-       //Get register position
-       hash(meta.output_hash_one, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv6.srcAddr,
-                                                          hdr.ipv6.dstAddr,
-                                                          hdr.udp.srcPort,
-                                                          hdr.udp.dstPort,
-                                                          hdr.ipv6.nextHeader,
-                                                          (bit<16>)0},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-
-       hash(meta.output_hash_two, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv6.srcAddr,
-                                                          hdr.ipv6.dstAddr,
-                                                          hdr.udp.srcPort,
-                                                          hdr.udp.dstPort,
-                                                          hdr.ipv6.nextHeader,
-                                                          (bit<16>)1},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-
-       hash(meta.output_hash_three, HashAlgorithm.crc32, (bit<16>)0, {hdr.ipv6.srcAddr,
-                                                          hdr.ipv6.dstAddr,
-                                                          hdr.udp.srcPort,
-                                                          hdr.udp.dstPort,
-                                                          hdr.ipv6.nextHeader,
-                                                          (bit<16>)2},
-                                                          (bit<32>)BLOOM_FILTER_ENTRIES);
-
+        HASH_IPV6_UDP(1, crc32);
+        HASH_IPV6_UDP(2, crc32);
+        HASH_IPV6_UDP(3, crc32);
     }
 
     action update_bloom_filter(){
         // Read counters
-        bloom_filter.read(meta.counter_one, meta.output_hash_one);
-        bloom_filter.read(meta.counter_two, meta.output_hash_two);
-        bloom_filter.read(meta.counter_three, meta.output_hash_three);
+        bloom_filter.read(meta.counter_one, meta.output_hash_1);
+        bloom_filter.read(meta.counter_two, meta.output_hash_2);
+        bloom_filter.read(meta.counter_three, meta.output_hash_3);
 
         // Update them
         meta.counter_one = meta.counter_one + 1;
@@ -345,9 +274,9 @@ control MyIngress(inout headers hdr,
         meta.counter_three = meta.counter_three + 1;
 
         // Write them back
-        bloom_filter.write(meta.output_hash_one, meta.counter_one);
-        bloom_filter.write(meta.output_hash_two, meta.counter_two);
-        bloom_filter.write(meta.output_hash_three, meta.counter_three);
+        bloom_filter.write(meta.output_hash_1, meta.counter_one);
+        bloom_filter.write(meta.output_hash_2, meta.counter_two);
+        bloom_filter.write(meta.output_hash_3, meta.counter_three);
     }
 
 
