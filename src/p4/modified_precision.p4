@@ -8,7 +8,7 @@
 #define FLOW_TABLE_SIZE_EACH 64
 #define HASH_BASE 6w0
 #define HASH_MAX 6w63
-
+#define FIELD_LIST_ID 1
 
 
 
@@ -114,8 +114,11 @@ struct custom_metadata_t {
 	bit<64> my_estimated_count;
 	bit<1> already_matched;
 
+  @field_list(FIELD_LIST_ID)
 	bit<64> carry_min;
 	bit<64> carry_min_plus_one;
+
+  @field_list(FIELD_LIST_ID)
 	bit<8> min_stage;
 	bit<1> do_recirculate;
 	bit<9> orig_egr_port;
@@ -253,21 +256,21 @@ control MyEgress(inout headers hdr,
   action compute_reg_index() {
 		// Each flow ID is hashed into d=3 different locations
 		hash(meta.hashed_address_s1, HashAlgorithm.crc16, HASH_BASE,
-			 	{hdr.ipv4.srcAddr, 7w11, hdr.ipv4.dstAddr}, HASH_MAX);
+			 	{hdr.ipv4.srcAddr, 7w11, hdr.ipv4.dstAddr}, (bit<16>)FLOW_TABLE_SIZE_EACH);
 
 		hash(meta.hashed_address_s2, HashAlgorithm.crc16, HASH_BASE,
-			 	{3w5, hdr.ipv4.srcAddr, 5w3, hdr.ipv4.dstAddr}, HASH_MAX);
+			 	{3w5, hdr.ipv4.srcAddr, 5w3, hdr.ipv4.dstAddr}, (bit<16>)FLOW_TABLE_SIZE_EACH);
 
 		hash(meta.hashed_address_s3, HashAlgorithm.crc16, HASH_BASE,
-			 	{2w0, hdr.ipv4.dstAddr, 1w1, hdr.ipv4.srcAddr}, HASH_MAX);
+			 	{2w0, hdr.ipv4.dstAddr, 1w1, hdr.ipv4.srcAddr}, (bit<16>)FLOW_TABLE_SIZE_EACH);
 	}
 
   action clone_and_recirc_replace_entry(){
     // We need to set up a mirror ID in order to make this work.
-    // Use simple_switch_CLI: mirroring_add 0 0
-    #define MIRROR_ID 0
+    // Use simple_switch_CLI: mirroring_add 400 0
+    #define MIRROR_ID 400
     // clone3<custom_metadata_t>(CloneType.E2E, MIRROR_ID, meta);
-    clone(CloneType.E2E, MIRROR_ID);
+    clone_preserving_field_list(CloneType.E2E, MIRROR_ID, FIELD_LIST_ID);
     // Recirculated packets carried meta.min_stage and meta.count_min, so they themselves know what to do.
   }
 

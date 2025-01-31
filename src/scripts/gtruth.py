@@ -31,16 +31,17 @@ def separate_flows(pcap_file, no_ipv6: bool, identifier_items: int):
     return flow_dict
 
 def compute_threshold(flow_dict, pkt_threshold):
-    hh_list = []
+    filtered_flows = {}
     for flow_id, pkt_count in flow_dict.items():
-        if pkt_count > pkt_threshold and flow_id not in hh_list:
-            hh_list.append(flow_id)
-    return hh_list
+        if pkt_count > pkt_threshold:
+            filtered_flows[flow_id] = pkt_count
+    return filtered_flows
 
 def compute_topk(flow_dict, top_k):
     sorted_items = sorted(flow_dict.items(), key=lambda item: item[1], reverse=True)
-    sorted_flow_ids = [flow_id for flow_id, _ in sorted_items]
-    return sorted_flow_ids[:top_k]
+    sorted_flows = [(flow_id, flow_cnt) for flow_id, flow_cnt in sorted_items]
+    top_k_flows = sorted_flows[:top_k]
+    return {flow_id: flow_cnt for flow_id, flow_cnt in top_k_flows}
 
 def handle_tcp_4_traffic(packet, identifier_items):
     src_ip = packet[IP].src
@@ -87,9 +88,8 @@ def handle_udp_6_traffic(packet, identifier_items):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate ground truth file from packet capture")
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-t", "--threshold", type=int, help="Specify the packet threshold to start considering a flow as a heavy hitter.")
-    group.add_argument("-k", "--top-k", type=int, help="Specify the amount of flows to consider as heavy hitters.")
+    parser.add_argument("-t", "--threshold", type=int, help="Specify the packet threshold to start considering a flow as a heavy hitter.")
+    parser.add_argument("-k", "--top-k", type=int, help="Specify the amount of flows to consider as heavy hitters.")
     parser.add_argument("--no-ipv6", action='store_true', help="Avoid using IPv6 traffic for ground truth generation.")
     parser.add_argument("-I", "--identifier", type=int, default=5, help="Specify the identifying tuple for each flow.")
     parser.add_argument("pcap_file", type=str, help="Specify the packet capture file to read from.") 
@@ -98,10 +98,11 @@ if __name__ == "__main__":
     gtruth_output_path = "run/gtruth.json"
     flows = separate_flows(args.pcap_file, no_ipv6=args.no_ipv6, identifier_items=args.identifier)
 
+    if args.top_k is not None:
+        flows = compute_topk(flows, args.top_k)
     if args.threshold is not None:
-        hh_list = compute_threshold(flows, args.threshold)
-    elif args.top_k is not None:
-        hh_list = compute_topk(flows, args.top_k)
+        flows = compute_threshold(flows, args.threshold)
+
     with open(gtruth_output_path, 'w+') as f:
-        json.dump(hh_list, f)
+        json.dump(list(flows.keys()), f)
 

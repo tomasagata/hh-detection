@@ -1,5 +1,6 @@
 from p4utils.utils.sswitch_thrift_API import SimpleSwitchThriftAPI
 import json
+import sys
 
 def decode_ipv4(ip_32):
     """
@@ -22,7 +23,7 @@ def read_precision_flows(thrift_port=9090,
         thrift_port=thrift_port,
         thrift_ip=thrift_ip
     )
-    detected_heavy_flows = []
+    detected_heavy_flows = {}
 
     for table_idx in [1, 2, 3]:
         flow_id_reg_src = f"MyEgress.flow_table_ids_{table_idx}_src"
@@ -41,7 +42,9 @@ def read_precision_flows(thrift_port=9090,
             id_tuple = parse_flow_ids(flow_id_val_src, flow_id_val_dst)
 
             if id_tuple not in detected_heavy_flows:
-                detected_heavy_flows.append(id_tuple)
+                detected_heavy_flows[id_tuple] = flow_ctr_val
+            else:
+                detected_heavy_flows[id_tuple] += flow_ctr_val
 
     return detected_heavy_flows
 
@@ -82,15 +85,20 @@ def report_accuracy(real_hh_list, detected_hh_list):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python3 precision_flows.py <threshold> <k-flows>")
+        exit(1)
 
     flows = read_precision_flows(
         thrift_port=9090,
         thrift_ip="localhost",
-        table_size=64
+        table_size=int(sys.argv[2])
     )
+
+    filter_flows = [k for k, v in flows.items() if v > int(sys.argv[1])]
 
     with open("run/gtruth.json", "r") as f:
         real_hh_list = json.load(f)
     
     real_hh_list = [tuple(i) for i in real_hh_list]
-    report_accuracy(real_hh_list, flows)
+    report_accuracy(real_hh_list, filter_flows)
