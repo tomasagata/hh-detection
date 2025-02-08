@@ -53,17 +53,12 @@ sudo apt-get install python3
 
 ### Usage
 
-1. Configure the network topology:
+1. Change the P4 file that will be used in the BMv2 switch:
 ```sh
-sudo python src/network.py <test_type> <pcap_file>
+nano src/network.py
 ```
 
-2. Generate ground truth:
-```sh
-python3 src/scripts/gtruth.py -t <threshold> <pcap_file>
-```
-
-3. Start the network and run tests:
+2. Start the network and run tests:
 ```sh
 ./start.sh <test_type> -t <threshold> <pcap_file>
 ```
@@ -78,24 +73,6 @@ python3 src/scripts/gtruth.py -t <threshold> <pcap_file>
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
-
-> The CAIDA UCSD Anonymized \<YEAR> Internet Traces - \<dates used>
-> https://www.caida.org/data/passive/passive_\<YEAR>_dataset 
-
-
 ## Contact
 
 For any questions or inquiries, please contact Tomas Agata and Muhammad Mansour.
-
-<!-- 
-
-Extracted from CAIDA
-When referencing this dataset, the use agreement requires inclusion of the following text:
-
-> The CAIDA UCSD Anonymized \<YEAR> Internet Traces - \<dates used>
-> https://www.caida.org/data/passive/passive_\<YEAR>_dataset 
-
-where \<YEAR> is the year of the dataset you are using. You are required to report your publications using this dataset to CAIDA. 
-
-https://www.caida.org/catalog/datasets/publications/report-publication/ -->
