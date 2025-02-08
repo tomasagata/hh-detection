@@ -1,4 +1,7 @@
-src/log
-src/pcap
-src/**/*.json
-src/**/*.p4i
+log
+pcap
+run
+topology.json
+src/p4/*.p4i
+src/p4/*.json
+data/**
